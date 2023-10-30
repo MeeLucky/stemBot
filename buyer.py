@@ -10,6 +10,7 @@ import mydb as db
 
 COLOR_YELLOW = "\033[33m"
 COLOR_GREEN = "\033[32m"
+DEBUG_MODE = True
 
 
 def buyerProcess(driver, connection, minMargin=10, isReg=False):
@@ -45,7 +46,7 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
                 driver.refresh()
                 isFirst = False
 
-            # проверяем наличие ошибки
+            # проверяем наличие ошибки, загрузился ли контент стима
             if seleniumExists(driver, By.CLASS_NAME, "market_listing_table_message"):
                 printColor("ошибка загрузки страницы, перезагрузка страницы", COLOR_YELLOW)
                 time.sleep(2)
@@ -55,11 +56,8 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
                     printColor("ошибка загрузки страницы второй раз, пропуск предмета", COLOR_YELLOW)
                     setItemStatus(connection, item[3], -1)
                     continue
-            # собираем инфу
-            # продаж в день
-            # print(f"sold in a day: ")
-            # driver.implicitly_wait(5)
 
+            # собираем инфу
             # цена покупки (автозакупка)
             buyPrice = ""
             # если за 10 попыток не удаётся получить цену автозакупки то предмет пропускается
@@ -86,24 +84,23 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
             print(f"Цена продажи: {sellPrice}")
 
             # маржа
-            if buyPrice.find("₸") == -1:
-                printColor("Пропуск, валюта автопокупки не в тенге", COLOR_YELLOW)
+            if buyPrice.split(" ")[1] != "pуб.":
                 print(buyPrice)
-                print(buyPrice.find("₸"))
+                print(buyPrice.split(" ")[1])
+                printColor("Пропуск, валюта автопокупки не в рублях", COLOR_YELLOW)
+                input("Пропуск, валюта автопокупки")
                 setItemStatus(connection, item[3], -3)
                 continue
 
             buyPrice = float(
                 buyPrice
-                .replace("₸", "")
-                .replace(" ", "")
+                .replace(" pуб.", "")
                 .replace(",", ".")
             )
             # sellPrice = float(sellPrice.split(" ")[0].replace(",", "."))
             sellPrice = float(
                 sellPrice
-                .replace("₸", "")
-                .replace(" ", "")
+                .replace(" pуб.", "")
                 .replace(",", ".")
             )
             margin = round((((sellPrice - sellPrice * 0.15) / buyPrice) - 1) * 100)

@@ -7,6 +7,19 @@ import mydb as db
 from myMethods import cookie
 
 
+def fncGetLinks(driver, connection, itemCount):
+    for i in range(3):
+        getLinksFinished = getLinks(driver, connection, itemCount=itemCount)
+        if getLinksFinished:
+            return True
+    return False
+
+def fncBuy(driver, connection, minMargin):
+    for i in range(3):
+        buyerProcessFinished = buyerProcess(driver, connection, minMargin=minMargin)
+        if buyerProcessFinished:
+            return True
+    return False
 
 connection = db.createConnection()
 
@@ -21,36 +34,16 @@ option.add_argument("--disable-blink-features=AutomationControlled")
 driver = webdriver.Chrome(options=option)
 driver.set_window_rect(-20, 0, 940, 1000)
 
-getLinksFinished = False
-buyerProcessFinished = False
 try:
-    skipIt = False
-    if not skipIt:
-        for i in range(3):
-            getLinksFinished = getLinks(driver, connection, itemCount=50)
-            if getLinksFinished:
-                break
-    else:
-        getLinksFinished = True
+    if fncGetLinks(driver, connection, 300):
+        if fncBuy(driver, connection, 5):
+            print("all was good")
+            #checkAll()
 
-    skipIt = False
-    if not skipIt:
-        if getLinksFinished:
-            for i in range(3):
-                buyerProcessFinished = buyerProcess(driver, connection, minMargin=5)
-                if buyerProcessFinished:
-                    break
-    else:
-        buyerProcessFinished = True
-
-    if buyerProcessFinished:
-        checkAll(driver, connection)
-
-    print("all was good")
-
-
+    print("End program")
 except Exception as ex:
     print(ex)
 finally:
     driver.close()
     driver.quit()
+
