@@ -6,26 +6,24 @@ from checker import checkAll
 import mydb as db
 from myMethods import cookie
 
+DEBUG_MOD = False
 
-def fncGetLinks(driver, connection, itemCount):
+def fncGetLinks(driver, connection, DEBUG_MOD, itemCount):
     for i in range(3):
-        getLinksFinished = getLinks(driver, connection, itemCount=itemCount)
+        getLinksFinished = getLinks(driver, connection, DEBUG_MOD, itemCount=itemCount)
         if getLinksFinished:
             return True
     return False
 
-def fncBuy(driver, connection, minMargin):
+def fncBuy(driver, connection, DEBUG_MOD, minMargin):
     for i in range(3):
-        buyerProcessFinished = buyerProcess(driver, connection, minMargin=minMargin)
+        buyerProcessFinished = buyerProcess(driver, connection, DEBUG_MOD, minMargin=minMargin)
         if buyerProcessFinished:
             return True
     return False
 
-connection = db.createConnection()
 
-# res = db.executeReadQuery(connection, "SELECT count(id), status FROM items  WHERE status = 0;    ")
-# for item in res:
-#     print(item)
+connection = db.createConnection()
 
 useragent = UserAgent()
 option = webdriver.ChromeOptions()
@@ -35,12 +33,14 @@ driver = webdriver.Chrome(options=option)
 driver.set_window_rect(-20, 0, 940, 1000)
 
 try:
-    if fncGetLinks(driver, connection, 300):
-        if fncBuy(driver, connection, 5):
-            print("all was good")
-            #checkAll()
+    if fncGetLinks(driver, connection, DEBUG_MOD, 300):
+        if fncBuy(driver, connection, DEBUG_MOD, 5):
+            if DEBUG_MOD:
+                print("all was good")
+                #checkAll()
 
-    print("End program")
+    if DEBUG_MOD:
+        print("End program")
 except Exception as ex:
     print(ex)
 finally:

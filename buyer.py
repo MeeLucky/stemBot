@@ -10,22 +10,19 @@ import mydb as db
 
 COLOR_YELLOW = "\033[33m"
 COLOR_GREEN = "\033[32m"
-DEBUG_MODE = True
 
 
-def buyerProcess(driver, connection, minMargin=10, isReg=False):
-    print("start fnc buyerProcess")
+def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
+    if DEBUG_MOD:
+        print("start fnc buyerProcess")
 
     query = "SELECT tb_margin, name, link, id FROM items WHERE status = 0;"
     items = db.executeReadQuery(connection, query)
-
-    url = "https://steamcommunity.com/login/home/"
     itemID = 0
 
     try:
-        # driver.set_window_rect(-20, 0, 940, 1000)
-
-        print(f"Перебор {len(items)} ссылок:")
+        itemsLen = len(items)
+        print(f"Перебор {itemsLen} предметов:")
         isFirst = True
         itemIndex = 0
         for item in items:
@@ -37,12 +34,12 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
             # 2 create order
 
             # открываем вкладку
-            print(f"{item[2]}\n{itemIndex}: {item[1]}")
+            print(f"\n{itemIndex}/{itemsLen}: {item[1]}\n{item[2]}")
             driver.get(url=item[2])
 
             # загружаем куки если это первый айтем
             if isFirst == True:
-                cookie(driver)
+                cookie(driver, DEBUG_MOD=DEBUG_MOD)
                 driver.refresh()
                 isFirst = False
 
@@ -53,8 +50,8 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
                 driver.refresh()
                 driver.implicitly_wait(5)
                 if seleniumExists(driver, By.CLASS_NAME, "market_listing_table_message"):
-                    printColor("ошибка загрузки страницы второй раз, пропуск предмета", COLOR_YELLOW)
-                    setItemStatus(connection, item[3], -1)
+                    printColor("ошибка загрузки страницы во второй раз, пропуск предмета", COLOR_YELLOW)
+                    setItemStatus(connection, item[3], -1, DEBUG_MOD)
                     continue
 
             # собираем инфу
@@ -71,7 +68,7 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
                     print(f"{i})StaleElementReferenceException for buyPrice")
             if buyPrice == "":
                 printColor("пропуск, за 10 попыток не удаётся получить цену автозакупки", COLOR_YELLOW)
-                setItemStatus(connection, item[3], -2)
+                setItemStatus(connection, item[3], -2, DEBUG_MOD)
                 continue
 
             # цена продажи (цена первого лота)
@@ -84,32 +81,43 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
             print(f"Цена продажи: {sellPrice}")
 
             # маржа
+            # проверка правильная ли валюта используется
             if buyPrice.split(" ")[1] != "pуб.":
-                print(buyPrice)
-                print(buyPrice.split(" ")[1])
+                if DEBUG_MOD:
+                    print(buyPrice)
+                    print(buyPrice.split(" ")[1])
                 printColor("Пропуск, валюта автопокупки не в рублях", COLOR_YELLOW)
-                input("Пропуск, валюта автопокупки")
-                setItemStatus(connection, item[3], -3)
+                setItemStatus(connection, item[3], -3, DEBUG_MOD)
                 continue
 
+            # проверка правильная ли валюта используется
+            if sellPrice.split(" ")[1] != "pуб.":
+                if DEBUG_MOD:
+                    print(sellPrice)
+                    print(sellPrice.split(" ")[1])
+                printColor("Пропуск, валюта автопокупки не в рублях", COLOR_YELLOW)
+                setItemStatus(connection, item[3], -3, DEBUG_MOD)
+                continue
+
+            # форматируем цены для расчётов
             buyPrice = float(
                 buyPrice
                 .replace(" pуб.", "")
                 .replace(",", ".")
             )
-            # sellPrice = float(sellPrice.split(" ")[0].replace(",", "."))
             sellPrice = float(
                 sellPrice
                 .replace(" pуб.", "")
                 .replace(",", ".")
             )
+            # находим маржу в стиме
             margin = round((((sellPrice - sellPrice * 0.15) / buyPrice) - 1) * 100)
             print(f"Маржа  ТБ : {item[0]}%")
             print(f"Маржа стим: {margin}%")
 
             if margin < minMargin:
-                printColor("пропуск, Слишком маленькая маржа", COLOR_YELLOW)
-                setItemStatus(connection, item[3], -4)
+                printColor("пропуск, маленькая маржа", COLOR_YELLOW)
+                setItemStatus(connection, item[3], -4, DEBUG_MOD)
                 continue
 
             # ордер на покупку
@@ -163,18 +171,20 @@ def buyerProcess(driver, connection, minMargin=10, isReg=False):
                         driver.implicitly_wait(3)
                         driver.find_element(By.ID, "market_buyorder_dialog_purchase").click()
                         driver.implicitly_wait(3)
-                        setItemStatus(connection, item[3], 1)
+                        setItemStatus(connection, item[3], 1, DEBUG_MOD)
                 else:
-                    setItemStatus(connection, item[3], -6)
+                    setItemStatus(connection, item[3], -6, DEBUG_MOD)
             else:
-                setItemStatus(connection, item[3], -5)
-            time.sleep(random.randint(0, 2))
+                setItemStatus(connection, item[3], -5, DEBUG_MOD)
+                printColor("пропуск, уже есть активный оред", COLOR_YELLOW)
+
+            # time.sleep(random.randint(0, 2))
 
         return True
     except Exception as ex:
         print(ex)
         PrintException()
-        setItemStatus(connection, itemID, -7)
+        setItemStatus(connection, itemID, -7, DEBUG_MOD)
 
 
 def getItemsFromFile(path):
@@ -182,6 +192,7 @@ def getItemsFromFile(path):
         s = file.read()
         arr = s.split("\n")
 
+        i: int
         for i in range(len(arr)):
             arr[i] = arr[i].split("/#/")
         file.close()
@@ -204,6 +215,7 @@ def printColor(text, color):
     print(f"{color}{text}\033[0m")
 
 
-def setItemStatus(connection, id, status):
+def setItemStatus(connection, id, status, DEBUG_MOD):
     db.updateItem(connection, "status", status, f"id = {id}")
-    print(f"setItemStatus {id} = {status}")
+    if DEBUG_MOD:
+        print(f"setItemStatus {id} = {status}")

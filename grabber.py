@@ -4,29 +4,34 @@ import mydb as db
 from buyer import seleniumExists
 from myMethods import cookie
 
-def getLinks(driver, connection, week_sells = "15", itemCount = 500):
+def getLinks(driver, connection, DEBUG_MOD, week_sells = "15", itemCount = 500):
     result = False
     url = "https://tradeback.io/ru/comparison"
 
     try:
-        print("get url")
+        if DEBUG_MOD:
+            print("get url")
         driver.get(url=url)
         driver.set_window_rect(0,0,900,1000)
         driver.implicitly_wait(5)
 
-        print("cookie")
-        cookie(driver)
+        if DEBUG_MOD:
+            print("cookie")
+        cookie(driver, DEBUG_MOD=DEBUG_MOD)
         driver.implicitly_wait(5)
 
-        print("refresh page")
+        if DEBUG_MOD:
+            print("refresh page")
         driver.refresh()
         driver.implicitly_wait(5)
 
-        print("click green button")
+        if DEBUG_MOD:
+            print("click green button")
         driver.find_element(By.CLASS_NAME, "btn_green_white_innerfade").click()
         driver.implicitly_wait(5)
 
-        print("get url again")
+        if DEBUG_MOD:
+            print("get url again")
         url = "https://tradeback.io/ru/comparison"
         driver.get(url=url)
         driver.implicitly_wait(5)
@@ -221,7 +226,8 @@ def getLinks(driver, connection, week_sells = "15", itemCount = 500):
         print(f"  {i}/{max}")
         t2 = time.time()
         print(f"Загрузка {max} предметов заняла {t2 - t1} сек")
-        print("End fnc getLinks")
+        if DEBUG_MOD:
+            print("End fnc getLinks")
         result = True
     except Exception as ex:
         print(ex)
