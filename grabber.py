@@ -35,7 +35,7 @@ def getLinks(driver, connection, DEBUG_MOD, week_sells = "15", itemCount = 500):
         url = "https://tradeback.io/ru/comparison"
         driver.get(url=url)
         driver.implicitly_wait(5)
-        time.sleep(1)
+        time.sleep(3)
 
         # установка настроек трейд бека и проверка их корректности
 
@@ -60,6 +60,7 @@ def getLinks(driver, connection, DEBUG_MOD, week_sells = "15", itemCount = 500):
             else:
                 #неправильно, меняем значение
                 seleniumClickCheckboxByID(driver, "auto-update-live")
+                time.sleep(2)
                 driver.implicitly_wait(3)
         #если предыдущая проверка не удалась, то выкидыаем ошибку
         checkIsFine(isFine, "Неудалось отключить автообновление данных")
