@@ -9,7 +9,9 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 import mydb as db
 
 
-def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
+def buyerProcess(driver, connection, DEBUG_MOD):
+    minMargin = 5
+    isReg = False
     if DEBUG_MOD:
         print("start fnc buyerProcess")
 
@@ -164,6 +166,9 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                         priceInput = driver.find_element(By.ID, "market_buy_commodity_input_price")
                         priceInput.clear()
                         priceInput.send_keys(buyPrice)
+                        quantityInput = driver.find_element(By.ID, "market_buy_commodity_input_quantity")
+                        quantityInput.clear()
+                        quantityInput.send_keys("3")
                         driver.find_element(By.ID, "market_buyorder_dialog_accept_ssa").click()
                         driver.implicitly_wait(3)
                         driver.find_element(By.ID, "market_buyorder_dialog_purchase").click()
@@ -197,7 +202,6 @@ def getItemsFromFile(path):
     return arr
 
 
-
 def PrintException():
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
@@ -206,6 +210,7 @@ def PrintException():
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
     print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+
 
 def setItemStatus(connection, id, status, DEBUG_MOD):
     db.updateItem(connection, "status", status, f"id = {id}")

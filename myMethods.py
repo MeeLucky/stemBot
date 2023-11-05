@@ -11,7 +11,8 @@ COOKIE_MODE_REG = "reg"
 COOKIE_MODE_AUTO = "auto"
 COOKIE_FILE_NAME = "tb_stem_auth_cookies"
 
-def cookie(driver, mode = COOKIE_MODE_AUTO, DEBUG_MOD = False):
+
+def cookie(driver, mode=COOKIE_MODE_AUTO, DEBUG_MOD=False):
     if DEBUG_MOD:
         print(f"cookie mode: {mode}")
     if mode == COOKIE_MODE_AUTO:
@@ -42,7 +43,6 @@ def cookie(driver, mode = COOKIE_MODE_AUTO, DEBUG_MOD = False):
         pickle.dump(driver.get_cookies(), open(COOKIE_FILE_NAME, "wb"))
 
     driver.implicitly_wait(5)
-
 
 
 def seleniumExists(driver, by, target):
