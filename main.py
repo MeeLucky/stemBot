@@ -6,9 +6,8 @@ from grabber import getLinks
 from buyer import buyerProcess
 from checker import checkAll
 import mydb as db
-from myMethods import cookie
 
-DEBUG_MOD = True
+DEBUG_MOD = False
 
 def fncGetLinks(driver, connection, DEBUG_MOD, itemCount):
     for i in range(3):

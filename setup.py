@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='stemBot',
-    version='',
+    version='0.2',
     packages=[''],
     url='',
     license='',
     author='MeeLock',
-    author_email='',
+    author_email='zalipatr1@yandex.ru',
     description=''
 )

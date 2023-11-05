@@ -8,9 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 import mydb as db
 
-COLOR_YELLOW = "\033[33m"
-COLOR_GREEN = "\033[32m"
-
 
 def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
     if DEBUG_MOD:
@@ -45,12 +42,12 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
 
             # проверяем наличие ошибки, загрузился ли контент стима
             if seleniumExists(driver, By.CLASS_NAME, "market_listing_table_message"):
-                printColor("ошибка загрузки страницы, перезагрузка страницы", COLOR_YELLOW)
+                print("ошибка загрузки страницы, перезагрузка страницы")
                 time.sleep(2)
                 driver.refresh()
                 driver.implicitly_wait(5)
                 if seleniumExists(driver, By.CLASS_NAME, "market_listing_table_message"):
-                    printColor("ошибка загрузки страницы во второй раз, пропуск предмета", COLOR_YELLOW)
+                    print("ошибка загрузки страницы во второй раз, пропуск предмета")
                     setItemStatus(connection, item[3], -1, DEBUG_MOD)
                     continue
 
@@ -67,7 +64,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                 except StaleElementReferenceException:
                     print(f"{i})StaleElementReferenceException for buyPrice")
             if buyPrice == "":
-                printColor("пропуск, за 10 попыток не удаётся получить цену автозакупки", COLOR_YELLOW)
+                print("пропуск, за 10 попыток не удаётся получить цену автозакупки")
                 setItemStatus(connection, item[3], -2, DEBUG_MOD)
                 continue
 
@@ -86,7 +83,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                 if DEBUG_MOD:
                     print(buyPrice)
                     print(buyPrice.split(" ")[1])
-                printColor("Пропуск, валюта автопокупки не в рублях", COLOR_YELLOW)
+                print("Пропуск, валюта автопокупки не в рублях")
                 setItemStatus(connection, item[3], -3, DEBUG_MOD)
                 continue
 
@@ -95,7 +92,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                 if DEBUG_MOD:
                     print(sellPrice)
                     print(sellPrice.split(" ")[1])
-                printColor("Пропуск, валюта автопокупки не в рублях", COLOR_YELLOW)
+                print("Пропуск, валюта автопокупки не в рублях")
                 setItemStatus(connection, item[3], -3, DEBUG_MOD)
                 continue
 
@@ -116,7 +113,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
             print(f"Маржа стим: {margin}%")
 
             if margin < minMargin:
-                printColor("пропуск, маленькая маржа", COLOR_YELLOW)
+                print("пропуск, маленькая маржа")
                 setItemStatus(connection, item[3], -4, DEBUG_MOD)
                 continue
 
@@ -161,7 +158,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                     # и маржа подходит под минимальные условия
                     if margin >= minMargin:
                         # создаём оредр
-                        printColor(f"Установлен оредр на {buyPrice}", COLOR_GREEN)
+                        print(f"Установлен оредр на {buyPrice}")
                         driver.find_element(By.CLASS_NAME, "market_noncommodity_buyorder_button").click()
                         driver.implicitly_wait(3)
                         priceInput = driver.find_element(By.ID, "market_buy_commodity_input_price")
@@ -176,7 +173,7 @@ def buyerProcess(driver, connection, DEBUG_MOD, minMargin=10, isReg=False):
                     setItemStatus(connection, item[3], -6, DEBUG_MOD)
             else:
                 setItemStatus(connection, item[3], -5, DEBUG_MOD)
-                printColor("пропуск, уже есть активный оред", COLOR_YELLOW)
+                print("пропуск, уже есть активный оред")
 
             # time.sleep(random.randint(0, 2))
 
@@ -209,11 +206,6 @@ def PrintException():
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
     print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
-
-
-def printColor(text, color):
-    print(f"{color}{text}\033[0m")
-
 
 def setItemStatus(connection, id, status, DEBUG_MOD):
     db.updateItem(connection, "status", status, f"id = {id}")

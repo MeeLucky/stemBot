@@ -28,17 +28,17 @@ def cookie(driver, mode = COOKIE_MODE_AUTO, DEBUG_MOD = False):
 
     if mode == COOKIE_MODE_LOAD:
         if DEBUG_MOD:
-            print("\033[35mload cookie\033[0m")
+            print("load cookie")
         for cookie in pickle.load(open(COOKIE_FILE_NAME, "rb")):
             driver.add_cookie(cookie)
     elif mode == COOKIE_MODE_REG:
         if DEBUG_MOD:
-            print("\033[35mRemove old cookie\033[0m")
+            print("Remove old cookie")
         if fileExists(COOKIE_FILE_NAME):
             removeFile(COOKIE_FILE_NAME)
         input("Pause; Log in and press enter...")
         if DEBUG_MOD:
-            print("\033[35msave cookie\033[0m")
+            print("save cookie")
         pickle.dump(driver.get_cookies(), open(COOKIE_FILE_NAME, "wb"))
 
     driver.implicitly_wait(5)
