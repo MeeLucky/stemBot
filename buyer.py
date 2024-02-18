@@ -114,11 +114,18 @@ def buyerProcess(driver, connection, DEBUG_MOD):
             print(f"Маржа  ТБ : {item[0]}%")
             print(f"Маржа стим: {margin}%")
 
+            itemBuyCount = 1
+
             if margin < minMargin:
                 print("пропуск, маленькая маржа")
                 setItemStatus(connection, item[3], -4, DEBUG_MOD)
                 continue
-
+            else:
+                itemBuyCount = int(margin / 3 - 1)
+            if itemBuyCount < 1:
+                itemBuyCount = 1
+            if itemBuyCount > 5:
+                itemBuyCount = 5
             # ордер на покупку
             myOrder = False
             # лот на продажу
@@ -168,7 +175,7 @@ def buyerProcess(driver, connection, DEBUG_MOD):
                         priceInput.send_keys(buyPrice)
                         quantityInput = driver.find_element(By.ID, "market_buy_commodity_input_quantity")
                         quantityInput.clear()
-                        quantityInput.send_keys("3")
+                        quantityInput.send_keys(f"{itemBuyCount}")
                         driver.find_element(By.ID, "market_buyorder_dialog_accept_ssa").click()
                         driver.implicitly_wait(3)
                         driver.find_element(By.ID, "market_buyorder_dialog_purchase").click()

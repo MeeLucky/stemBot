@@ -44,9 +44,9 @@ try:
         print("End program")
 except Exception as ex:
     print(ex)
-    input("END PROGRAM error")
+    # input("END PROGRAM error")
 finally:
     driver.close()
     driver.quit()
-    input("END PROGRAM good")
+    # input("END PROGRAM good")
 
